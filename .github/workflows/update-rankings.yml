@@ -1,0 +1,35 @@
+name: Update rankings
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
+  workflow_dispatch:          # manual run button in Actions tab
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build rankings.json
+        run: node build-rankings.mjs
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain rankings.json)" ]; then
+            git add rankings.json
+            git commit -m "Update rankings [skip ci]" || echo "Nothing to commit"
+            git push
+          else
+            echo "No changes in rankings.json"
+          fi

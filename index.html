@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FRC Fantasy</title>
+
+  <!-- Inter Tight font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- Tailwind Playground CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'inter-tight': ['"Inter Tight"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            'ff-bg': '#020617',
+          },
+          boxShadow: {
+            'ff-card': '0 18px 45px rgba(15,23,42,0.9)',
+            'ff-card-hover': '0 24px 60px rgba(15,23,42,0.95)',
+          },
+          keyframes: {
+            'ff-fade-up': {
+              '0%':   { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          },
+          animation: {
+            'ff-fade-up': 'ff-fade-up 0.35s ease-out forwards'
+          }
+        }
+      }
+    }
+  </script>
+    <style>
+    @font-face {
+      font-family: 'OliviarSansBlackItalicEx';
+      src: url('./OliviarSans-BlackItalicEx.ttf') format('truetype');
+      font-weight: 700;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    .frc-logo {
+      font-family: 'OliviarSansBlackItalicEx', 'Inter Tight', system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-ff-bg text-slate-100 font-inter-tight flex justify-center px-3 py-4 sm:px-4 sm:py-6">
+  <div class="w-full max-w-5xl">
+    <!-- Top bar / logo -->
+    <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-fuchsia-500 to-rose-500 shadow-lg shadow-blue-500/50">
+          <span class="text-sm font-extrabold tracking-[0.18em] text-white"><img src="FF.png"></span>
+        </div>
+        <div class="flex flex-col gap-[2px]">
+            <h1 class="frc-logo text-2xl pr-3 font-extrabold uppercase bg-gradient-to-r from-sky-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
+            FRC Fantasy
+            </h1>
+          <!-- <p class="text-[11px] uppercase tracking-[0.22em] text-slate-400">
+            Norm EPA Power Rankings
+          </p> -->
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 sm:justify-end">
+        <div class="flex items-center gap-2 rounded-full border border-slate-600/60 px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-slate-400">
+          <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]"></span>
+          Live EPA
+        </div>
+        <button
+          id="refreshButton"
+          class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-fuchsia-500 to-orange-400 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-lg shadow-blue-500/60 transition transform hover:-translate-y-[1px] hover:shadow-ff-card-hover disabled:opacity-60 disabled:shadow-none disabled:transform-none"
+        >
+          <span class="text-sm">⟳</span>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Status -->
+    <p id="statusText" class="mb-3 text-xs text-slate-400">
+      Calculating rankings…
+    </p>
+
+    <!-- Rankings grid -->
+    <!-- mobile: 1 col (true ordering), md: 2, xl: 3 -->
+    <section
+      id="rankingsGrid"
+      class="grid grid-flow-row grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+    >
+      <!-- Cards injected by JS -->
+    </section>
+  </div>
+
+<script>
+  // Use ALL six numbers as team numbers
+  const peopleTeams = {
+    "Shreyas":  [2056, 5409, 694, 67, 1768, 10002],
+    "James":    [254, 6328, 3847, 148, 1983, 10118],
+    "Kovi":     [1678, 2481, 7457, 4145, 68, 308],
+    "Neil":     [1323, 4272, 2073, 2877, 1699, 4096],
+    "Yuvaan":   [1690, 4678, 3310, 195, 604, 5012],
+    "Sawyer":   [2910, 180, 359, 422, 3494, 247],
+    "Luke":     [9450, 1796, 1706, 1771, 9094, 1189],
+    "Ashwin":   [4414, 190, 125, 2767, 3136, 5835],
+    "Kent":     [118, 3683, 9483, 3005, 111, 11274],
+    "Lesbians": [5940, 1114, 5895, 4481, 1684, 1]
+  };
+
+  // 🔤 Build A1, A2, ... labels based on JSON insertion order
+  const pickLabels = {};
+  Object.keys(peopleTeams).forEach((name, idx) => {
+    pickLabels[name] = `Alliance ${idx + 1}`;
+  });
+
+  const STATBOTICS_TEAM_ENDPOINT = "https://api.statbotics.io/v3/team/";
+  const TBA_AVATAR_BASE = "https://www.thebluealliance.com/avatar/2025/frc";
+
+  const statusText = document.getElementById("statusText");
+  const rankingsGrid = document.getElementById("rankingsGrid");
+  const refreshButton = document.getElementById("refreshButton");
+
+  const teamEpaCache = {};
+
+  async function fetchTeamEPA(teamNumber) {
+    if (teamEpaCache[teamNumber] !== undefined) {
+      return teamEpaCache[teamNumber];
+    }
+    const res = await fetch(STATBOTICS_TEAM_ENDPOINT + teamNumber);
+    if (!res.ok) {
+      console.error("Team fetch failed", teamNumber, res.status);
+      teamEpaCache[teamNumber] = 0;
+      return 0;
+    }
+    const data = await res.json();
+    const epa =
+      data.norm_epa && typeof data.norm_epa.current === "number"
+        ? data.norm_epa.current
+        : 0;
+    teamEpaCache[teamNumber] = epa;
+    return epa;
+  }
+
+  async function calculateEPAForPerson(person, teams) {
+    let totalEPA = 0;
+    let count = 0;
+
+    await Promise.all(
+      teams.map(async (team) => {
+        try {
+          const epa = await fetchTeamEPA(team);
+          totalEPA += epa;
+          count++;
+        } catch (e) {
+          console.error("Error for team", team, e);
+        }
+      })
+    );
+
+    const avgEPA = count > 0 ? totalEPA / count : 0;
+    return { person, teams, totalEPA, avgEPA };
+  }
+
+  function createTeamCard(result, index) {
+    const rank = index + 1;
+
+    const card = document.createElement("article");
+    card.className =
+      "relative flex flex-col gap-3 rounded-2xl border border-slate-700/70 bg-gradient-to-br from-sky-500/20 via-fuchsia-500/10 to-slate-900 p-4 shadow-ff-card transition transform hover:-translate-y-1 hover:shadow-ff-card-hover opacity-0 animate-ff-fade-up";
+    card.style.animationDelay = `${index * 60}ms`;
+
+    const top = document.createElement("div");
+    top.className = "flex items-start justify-between gap-2";
+
+    const rankPill = document.createElement("div");
+    rankPill.className =
+      "inline-flex items-center rounded-full border border-slate-600/70 bg-slate-900/80 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-slate-400";
+    rankPill.innerHTML =
+      'Rank <span class="ml-1 text-[13px] font-bold text-slate-50">' +
+      rank +
+      "</span>";
+
+    const meta = document.createElement("div");
+    meta.className = "ml-2 flex flex-1 flex-col gap-0.5";
+    const nameEl = document.createElement("div");
+    nameEl.className = "text-[16px] font-semibold tracking-[0.04em]";
+    nameEl.textContent = result.person;
+
+    const labelEl = document.createElement("div");
+    labelEl.className =
+      "text-[11px] uppercase tracking-[0.18em] text-slate-500";
+    // 👇 Use A1, A2, ... based on JSON order
+    labelEl.textContent = pickLabels[result.person] || "";
+
+    meta.appendChild(nameEl);
+    meta.appendChild(labelEl);
+
+    const epaBlock = document.createElement("div");
+    epaBlock.className = "flex flex-col items-end gap-0.5 text-right";
+    const totalEl = document.createElement("div");
+    totalEl.className = "text-lg font-semibold text-amber-300 -mb-1";
+    totalEl.textContent = result.totalEPA.toFixed(1);
+    const subEl = document.createElement("div");
+    subEl.className = "text-[11px] text-slate-400";
+    subEl.textContent = `Avg EPA ${result.avgEPA.toFixed(2)}`;
+    const tagEl = document.createElement("div");
+    tagEl.className =
+      "mt-0.5 rounded-full border border-slate-600/70 bg-slate-900/80 px-2 py-[2px] text-[9px] uppercase tracking-[0.2em] text-slate-400";
+    tagEl.textContent = "Norm EPA";
+    epaBlock.appendChild(totalEl);
+    epaBlock.appendChild(subEl);
+    // epaBlock.appendChild(tagEl);
+
+    top.appendChild(rankPill);
+    top.appendChild(meta);
+    top.appendChild(epaBlock);
+
+    const chipRow = document.createElement("div");
+    chipRow.className = "mt-2 flex flex-wrap gap-2";
+
+    result.teams.forEach((teamNum) => {
+      const chip = document.createElement("div");
+      chip.className =
+        "inline-flex items-center gap-2 rounded-full border border-slate-600/80 bg-slate-900/90 px-2 py-[3px] text-[11px] text-slate-300";
+
+      const img = document.createElement("img");
+      img.src = `${TBA_AVATAR_BASE}${teamNum}.png`;
+      img.alt = `frc${teamNum}`;
+      img.loading = "lazy";
+      img.className = "h-6 w-6 rounded-full bg-slate-950 object-cover";
+
+      const span = document.createElement("span");
+      span.textContent = `FRC ${teamNum}`;
+
+      chip.appendChild(img);
+      chip.appendChild(span);
+      chipRow.appendChild(chip);
+    });
+
+    card.appendChild(top);
+    card.appendChild(chipRow);
+    return card;
+  }
+
+  async function runRankings() {
+    refreshButton.disabled = true;
+    statusText.textContent = "Calculating rankings from Statbotics…";
+
+    try {
+      const entries = Object.entries(peopleTeams);
+      const results = [];
+
+      for (const [person, teams] of entries) {
+        const res = await calculateEPAForPerson(person, teams);
+        results.push(res);
+      }
+
+      // sort by total EPA descending – this defines ranking order
+      results.sort((a, b) => b.totalEPA - a.totalEPA);
+
+      rankingsGrid.innerHTML = "";
+      results.forEach((result, idx) => {
+        rankingsGrid.appendChild(createTeamCard(result, idx));
+      });
+
+      statusText.textContent =
+        "Rankings based on current norm_epa from Statbotics.";
+    } catch (e) {
+      console.error(e);
+      statusText.textContent =
+        "Error calculating rankings. Check console for details.";
+    } finally {
+      refreshButton.disabled = false;
+    }
+  }
+
+  refreshButton.addEventListener("click", runRankings);
+
+  // auto-run once on load
+  runRankings();
+</script>
+
+</body>
+</html>
