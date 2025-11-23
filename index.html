@@ -41,19 +41,21 @@
     }
   </script>
     <style>
-    @font-face {
-      font-family: 'OliviarSansBlackItalicEx';
-      src: url('OliviarSans-BlackItalicEx.woff2') format('woff2'),
-          url('OliviarSans-BlackItalicEx.ttf') format('truetype');
-      font-weight: 700;
-      font-style: italic;
-      font-display: swap;
-    }
+      @font-face {
+        font-family: 'OliviarSansLogo';
+        src: url('OliviarSans-BlackItalicEx.woff2') format('woff2'),
+            url('OliviarSans-BlackItalicEx.ttf') format('truetype');
+        font-weight: 800;  /* match what we actually use */
+        font-style: italic;
+        font-display: swap;
+      }
 
-    .frc-logo {
-      font-family: 'OliviarSansBlackItalicEx', 'Inter Tight', system-ui, sans-serif;
-    }
-  </style>
+      .frc-logo {
+        font-family: 'OliviarSansLogo', 'Inter Tight', system-ui, sans-serif;
+        font-weight: 800;
+        font-style: italic;
+      }
+    </style>
 </head>
 <body class="min-h-screen bg-ff-bg text-slate-100 font-inter-tight flex justify-center px-3 py-4 sm:px-4 sm:py-6">
   <div class="w-full max-w-5xl">
@@ -64,7 +66,7 @@
           <span class="text-sm font-extrabold tracking-[0.18em] text-white"><img src="FF.png"></span>
         </div>
         <div class="flex flex-col gap-[2px]">
-            <h1 class="frc-logo text-2xl pr-3 font-extrabold uppercase bg-gradient-to-r from-sky-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
+            <h1 class="frc-logo text-2xl pr-3 uppercase bg-gradient-to-r from-sky-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
             FRC Fantasy
             </h1>
           <!-- <p class="text-[11px] uppercase tracking-[0.22em] text-slate-400">
@@ -271,7 +273,7 @@
     if (data.updatedAt) {
       const t = new Date(data.updatedAt);
 
-      const formatted = t.toLocaleTimeString([], {
+      let formatted = t.toLocaleTimeString([], {
         hour: "numeric",
         minute: "2-digit"
       });
