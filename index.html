@@ -89,9 +89,8 @@
     </header>
 
     <!-- Status -->
-    <!-- <p id="statusText" class="mb-3 text-xs text-slate-400">
-      Calculating rankings…
-    </p> -->
+    <p id="statusText" class="mb-3 text-xs text-slate-400">
+    </p>
 
     <!-- Rankings grid -->
     <!-- mobile: 1 col (true ordering), md: 2, xl: 3 -->
@@ -257,7 +256,6 @@
 
   async function runRankings() {
   refreshButton.disabled = true;
-  statusText.textContent = "Loading rankings…";
 
   try {
     const res = await fetch("rankings.json?ts=" + Date.now());
@@ -285,7 +283,7 @@
   } catch (e) {
     console.error(e);
     statusText.textContent =
-      "Error loading cached rankings. Check console for details.";
+      "Error loading rankings. Check console for details.";
   } finally {
     refreshButton.disabled = false;
   }
