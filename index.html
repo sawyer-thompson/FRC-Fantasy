@@ -74,9 +74,9 @@
       </div>
 
       <div class="flex items-center justify-between gap-3 sm:justify-end">
-        <div class="flex items-center gap-2 rounded-full border border-slate-600/60 px-3 py-1.5 text-[11px] tracking-[0.15em] text-slate-400">
-          <span id="updatedTime" class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]"></span>
-          Updated just now
+        <div id="updatedTime" class="flex items-center gap-2 rounded-full border border-slate-600/60 px-3 py-1.5 text-[11px] tracking-[0.15em] text-slate-400">
+          <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]"></span>
+          <span id="updatedTimeText">Updated just now</span>
         </div>
         <button
           id="refreshButton"
@@ -280,7 +280,7 @@
 
       updatedTime.textContent = `Updated at ${formatted}`;
     } else {
-      updatedTime.textContent = "Updated recently";
+      updatedTime.textContent = "Updated just now";
     }
   } catch (e) {
     console.error(e);
