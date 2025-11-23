@@ -253,36 +253,37 @@
   }
 
   async function runRankings() {
-    refreshButton.disabled = true;
-    statusText.textContent = "Calculating rankings from Statbotics…";
+  refreshButton.disabled = true;
+  statusText.textContent = "Loading rankings…";
 
-    try {
-      const entries = Object.entries(peopleTeams);
-      const results = [];
+  try {
+    const res = await fetch("rankings.json?ts=" + Date.now());
+    if (!res.ok) throw new Error("Failed to load rankings.json: " + res.status);
 
-      for (const [person, teams] of entries) {
-        const res = await calculateEPAForPerson(person, teams);
-        results.push(res);
-      }
+    const data = await res.json();
+    const results = data.rankings || [];
 
-      // sort by total EPA descending – this defines ranking order
-      results.sort((a, b) => b.totalEPA - a.totalEPA);
+    rankingsGrid.innerHTML = "";
+    results.forEach((result, idx) => {
+      rankingsGrid.appendChild(createTeamCard(result, idx));
+    });
 
-      rankingsGrid.innerHTML = "";
-      results.forEach((result, idx) => {
-        rankingsGrid.appendChild(createTeamCard(result, idx));
-      });
-
+    if (data.updatedAt) {
+      const t = new Date(data.updatedAt);
       statusText.textContent =
-        "Rankings based on current norm_epa from Statbotics.";
-    } catch (e) {
-      console.error(e);
-      statusText.textContent =
-        "Error calculating rankings. Check console for details.";
-    } finally {
-      refreshButton.disabled = false;
+        "Rankings from cached Statbotics data · updated " + t.toLocaleString();
+    } else {
+      statusText.textContent = "Rankings loaded.";
     }
+  } catch (e) {
+    console.error(e);
+    statusText.textContent =
+      "Error loading cached rankings. Check console for details.";
+  } finally {
+    refreshButton.disabled = false;
   }
+}
+
 
   refreshButton.addEventListener("click", runRankings);
 
