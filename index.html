@@ -43,7 +43,8 @@
     <style>
     @font-face {
       font-family: 'OliviarSansBlackItalicEx';
-      src: url('./OliviarSans-BlackItalicEx.ttf') format('truetype');
+      src: url('OliviarSans-BlackItalicEx.woff2') format('woff2'),
+          url('OliviarSans-BlackItalicEx.ttf') format('truetype');
       font-weight: 700;
       font-style: italic;
       font-display: swap;
@@ -73,9 +74,9 @@
       </div>
 
       <div class="flex items-center justify-between gap-3 sm:justify-end">
-        <div class="flex items-center gap-2 rounded-full border border-slate-600/60 px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-slate-400">
+        <div id="updatedTime" class="flex items-center gap-2 rounded-full border border-slate-600/60 px-3 py-1.5 text-[11px] tracking-[0.15em] text-slate-400">
           <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]"></span>
-          Live EPA
+          Updated just now
         </div>
         <button
           id="refreshButton"
@@ -129,8 +130,10 @@
   const statusText = document.getElementById("statusText");
   const rankingsGrid = document.getElementById("rankingsGrid");
   const refreshButton = document.getElementById("refreshButton");
+  const updatedTime = document.getElementById("updatedTime");
 
   const teamEpaCache = {};
+
 
   async function fetchTeamEPA(teamNumber) {
     if (teamEpaCache[teamNumber] !== undefined) {
@@ -267,13 +270,17 @@
     results.forEach((result, idx) => {
       rankingsGrid.appendChild(createTeamCard(result, idx));
     });
-
     if (data.updatedAt) {
       const t = new Date(data.updatedAt);
-      statusText.textContent =
-        "Rankings from cached Statbotics data · updated " + t.toLocaleString();
+
+      const formatted = t.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+
+      updatedTime.textContent = `Updated at ${formatted}`;
     } else {
-      statusText.textContent = "Rankings loaded.";
+      updatedTime.textContent = "Updated recently";
     }
   } catch (e) {
     console.error(e);
