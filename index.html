@@ -233,9 +233,12 @@
     chipRow.className = "mt-2 flex flex-wrap gap-2";
 
     result.teams.forEach((teamNum) => {
-      const chip = document.createElement("div");
-      chip.className =
-        "inline-flex items-center gap-2 rounded-full border border-slate-600/80 bg-slate-900/90 px-2 py-[3px] text-[11px] text-slate-300";
+      const a = document.createElement("a");
+      a.href = `https://www.statbotics.io/team/${teamNum}`;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.className =
+        "inline-flex items-center gap-2 rounded-full border border-slate-600/80 bg-slate-900/90 px-2 py-[3px] text-[11px] text-slate-300 hover:bg-slate-800 transition";
 
       const img = document.createElement("img");
       img.src = `${TBA_AVATAR_BASE}${teamNum}.png`;
@@ -246,9 +249,9 @@
       const span = document.createElement("span");
       span.textContent = `FRC ${teamNum}`;
 
-      chip.appendChild(img);
-      chip.appendChild(span);
-      chipRow.appendChild(chip);
+      a.appendChild(img);
+      a.appendChild(span);
+      chipRow.appendChild(a);
     });
 
     card.appendChild(top);
