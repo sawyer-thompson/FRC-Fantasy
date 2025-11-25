@@ -119,7 +119,7 @@
     "Shreyas":  [2056, 5409, 694, 67, 1768, 10002],
     "James":    [254, 6328, 3847, 148, 1983, 10118],
     "Kovi":     [1678, 2481, 7457, 4145, 68, 308],
-    "Neil":     [1323, 4272, 2073, 2877, 1699, 4096],
+    "Neil":     [1323, 4272, 6329, 2877, 1699, 4096],
     "Yuvaan":   [1690, 4678, 3310, 195, 604, 5012],
     "Sawyer":   [2910, 180, 359, 422, 3494, 247],
     "Luke":     [9450, 1796, 1706, 1771, 9094, 1189],
@@ -272,7 +272,7 @@
   refreshButton.disabled = true;
 
   try {
-    const res = await fetch("rankings.json?ts=" + Date.now());
+    const res = await fetch("https://sawyer-thompson.github.io/FRC-Fantasy/rankings.json?ts=" + Date.now());
     if (!res.ok) throw new Error("Failed to load rankings.json: " + res.status);
 
     const data = await res.json();
